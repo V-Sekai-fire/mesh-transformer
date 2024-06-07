@@ -11,4 +11,6 @@ Okay, the most reasonable is not to jump to the sky and waste GPU $$, so the 200
 
 But I was thinking of testing training the autoencoder on 1.5B and if it takes like 48hrs using 4090, then we might just train on the 200M tokens only.
 
-there's also the problem I can wait but modifying the vm is slow and we can always early stop
+Okay, the plan now is to train again, but setting "text_condition_cond_drop_prob" to 25%.
+
+This value will mask the text, so instead of "shovel with a wooden handle" it can become "wooden handle" or "shovel" since it will have a 25% change to drop any of the words in the text.
