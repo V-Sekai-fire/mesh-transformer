@@ -14,3 +14,9 @@ But I was thinking of testing training the autoencoder on 1.5B and if it takes l
 Okay, the plan now is to train again, but setting "text_condition_cond_drop_prob" to 25%.
 
 This value will mask the text, so instead of "shovel with a wooden handle" it can become "wooden handle" or "shovel" since it will have a 25% change to drop any of the words in the text.
+
+After it has reached like 0.00X average loss per epoch, we can focus on the next big thing.
+
+The first step in creating a new model is the autoencoder, so we'll try with the 1.5B tokens and see how long that would take.
+
+The reason for this is that the more diverse data it gets, the better it's able generalize.
