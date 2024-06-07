@@ -55,21 +55,24 @@ transformer = MeshTransformer(
     text_condition_model_types = "bge", 
     text_condition_cond_drop_prob = 0.25, 
 ).to("cuda")
-pkg = torch.load("./mesh-transformer.ckpt.epoch_25_avg_loss_0.220.pt") 
+pkg = torch.load("./MeshGPT-transformer_trained_base.pt") 
 transformer.load_state_dict(pkg['model'],strict=False)
  
-# %%
 dataset = MeshDataset.load("./labels_885_10x5_21720_mod.npz") 
 labels = list(set(item['texts'] for item in dataset.data))
 dataset.generate_codes(autoencoder,150)
 dataset.data[0].keys() 
 dataset.embed_texts(transformer,1)
- 
+
 batch_size =16
 grad_accum_every =4      
 trainer = MeshTransformerTrainer(model = transformer,warmup_steps = 10,grad_accum_every=grad_accum_every,num_train_steps=100, dataset = dataset, 
-                                 learning_rate = 1e-4, batch_size=batch_size ,checkpoint_every_epoch = 1) 
-loss = trainer.train(740, stop_at_loss = 0.00005)   
+                                 learning_rate = 1e-4, batch_size=batch_size, checkpoint_every_epoch = 25) 
 
-pkg = dict( model = transformer.state_dict(), ) 
-torch.save(pkg, str("./MeshGPT-transformer_trained.pt"))
+total_epochs = 740
+epochs_per_save = 25
+
+for i in range(epochs_per_save, total_epochs + 1, epochs_per_save):
+    loss = trainer.train(i, stop_at_loss = 0.00005)   
+    pkg = dict( model = transformer.state_dict(), ) 
+    torch.save(pkg, str(f"./MeshGPT-transformer_trained_{i}.pt"))
