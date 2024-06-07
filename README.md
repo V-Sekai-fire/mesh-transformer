@@ -1,3 +1,13 @@
+# Procedure
+
+VSCode is a bit unreliable. I want to be able to shut down my vscode.
+
+So text-to-mesh is now on github and on tmux.
+
+Also converted ipynb to py.
+
+# Plan
+
 So I'm thinking of letting the autoencoder train on the 1.5B tokens and then after maybe 1 epoch we switch to 200M 
 
 Then we got the option to continue train the autoencoder on 1.5B tokens but that would require two sessions running.
