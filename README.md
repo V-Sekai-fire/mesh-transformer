@@ -6,6 +6,14 @@ So text-to-mesh is now on github and on tmux.
 
 Also converted ipynb to py.
 
+# Python to ipython
+
+```
+pip install jupytext
+jupytext --to ipynb mesh_trainer.py
+rm -rf mesh_trainer.py
+```
+
 # Plan
 
 So I'm thinking of letting the autoencoder train on the 1.5B tokens and then after maybe 1 epoch we switch to 200M 
