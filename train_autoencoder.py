@@ -127,7 +127,7 @@ def train_epochs(context, autoencoder, dataset, max_epochs, min_loss):
             min_loss = new_loss
             context.log.info(f'New minimum loss {min_loss} at epoch {epoch}')
             
-        yield DynamicOut((new_autoencoder, new_loss), mapping_key=str(epoch))
+        yield DynamicOut((new_autoencoder, new_loss), mapping_key=epoch)
         
         if new_loss <= 0.01:
             break
