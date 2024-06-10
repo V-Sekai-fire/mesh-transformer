@@ -3,4 +3,4 @@ dagit
 torch
 torchvision
 torchaudio
-
+./meshgpt-pytorch
