@@ -1,2 +1,6 @@
 dagster
 dagit
+torch
+torchvision
+torchaudio
+
