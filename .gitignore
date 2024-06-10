@@ -4,3 +4,4 @@ MeshGPT-transformer_885-10x-x5-15170.pt
 MeshGPT-transformer_trained.pt
 *.npz
 *.pt
+mse_rows.obj
