@@ -118,7 +118,8 @@ def save_model_op(autoencoder, loss):
 
 @op
 def train_autoencoder_asset(model, datasets):
-    return evaluate_model_op(save_model_op(train_autoencoder(model, datasets)))
+    model, loss = train_autoencoder(model, datasets)
+    return evaluate_model_op(save_model_op(model, loss))
 
 @op
 def train_autoencoder_twice(model, datasets):
