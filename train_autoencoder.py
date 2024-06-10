@@ -104,8 +104,7 @@ def evaluate_model(context, autoencoder, dataset):
         
     return autoencoder, mse_obj
 
-@op(ins={"autoencoder": In(), "dataset": In()}, out={"autoencoder": Out(), "loss": Out()})
-def train_autoencoder(context, autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
+def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     batch_size=16
     grad_accum_every =4
     learning_rate = 1e-3
@@ -115,16 +114,36 @@ def train_autoencoder(context, autoencoder, dataset) -> tuple[MeshAutoencoder, f
                                              grad_accum_every = grad_accum_every,
                                              learning_rate = learning_rate,
                                              checkpoint_every_epoch=5)
-    loss = autoencoder_trainer.train(MAX_EPOCHS, diplay_graph= False)   
+    loss = autoencoder_trainer.train(1, diplay_graph= False)   
     return (autoencoder, loss)
+
+@op(
+    config_schema={
+    },
+    out=DynamicOut(dict),
+)
+def train_autoencoder_op(context,autoencoder, dataset):
+    for i in range(740):
+        model, loss = train_autoencoder(autoencoder, dataset)
+        yield DynamicOutput({"model": model, "loss": loss}, mapping_key=str(i))
+        if loss < 0.01:
+            break
+
+@op
+def save_and_evaluate_model(context, model_loss_dict):
+    model = model_loss_dict["model"]
+    loss = model_loss_dict["loss"]
+
+    save_model(model, loss)
+    dataset = load_datasets()
+    evaluate_model(model, dataset)
 
 @job
 def train_autoencoder_job():
     autoencoder = create_autoencoder()
     dataset = load_datasets()
-    model, loss = train_autoencoder(autoencoder, dataset)
-    save_model(model, loss)
-    evaluate_model(model, dataset)
+    results = train_autoencoder_op(autoencoder, dataset)
+    results.map(save_and_evaluate_model)
 
 if __name__ == "__main__":
     instance = DagsterInstance.get()
