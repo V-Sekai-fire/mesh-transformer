@@ -121,15 +121,15 @@ def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
 def train_epochs(context, autoencoder, dataset, max_epochs, min_loss):
     for epoch in range(max_epochs):
         trained_autoencoder = train_autoencoder(autoencoder, dataset)
-        autoencoder, loss = trained_autoencoder 
+        new_autoencoder, new_loss = trained_autoencoder 
         
-        if loss < min_loss:
-            min_loss = loss
+        if new_loss < min_loss:
+            min_loss = new_loss
             context.log.info(f'New minimum loss {min_loss} at epoch {epoch}')
             
-        yield DynamicOut(value=(autoencoder, loss), mapping_key=str(epoch))
+        yield DynamicOut(value=(new_autoencoder, new_loss), mapping_key=str(epoch))
         
-        if loss <= 0.001:
+        if new_loss <= 0.01:
             break
 
 @op
