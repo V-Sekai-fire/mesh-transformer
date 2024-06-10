@@ -84,7 +84,7 @@ def evaluate_model_op(context, autoencoder, dataset):
     return autoencoder, mse_obj
 
 @op(tags={"dagster/concurrency_key": "train"})
-def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
+def train_autoencoder(autoencoder, dataset) -> tuple[object, float]:
     batch_size=16
     grad_accum_every =4
     learning_rate = 1e-3
