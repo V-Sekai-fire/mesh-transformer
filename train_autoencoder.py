@@ -105,7 +105,7 @@ def evaluate_model(context, autoencoder, dataset):
     return autoencoder, mse_obj
 
 @op(ins={"autoencoder": In(), "dataset": In()}, out={"autoencoder": Out(metadata={"time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),"model_size_bytes": str(os.path.getsize("./MeshGPT-autoencoder.pt")),}),        "loss": Out()},)
-def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
+def train_autoencoder(context, autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     batch_size=16
     grad_accum_every =4
     learning_rate = 1e-3
@@ -141,7 +141,7 @@ def get_max_epochs():
 def get_min_loss():
     return float('inf')
 
-@op
+@op(ins={"autoencoder": In()})
 def save_and_evaluate_model(context, autoencoder):
     model = save_model(autoencoder)
     evaluate_model(model)
