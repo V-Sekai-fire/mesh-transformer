@@ -134,11 +134,15 @@ def save_model_op(context, autoencoder, loss):
         }
     )
 
-@graph_asset
-def train_autoencoder():
+@op
+def train_text_to_mesh_model():
     max_iterations = 1
     loss_early_stop = 0.1
     autoencoder = create_autoencoder_op()
     dataset = load_datasets_op()
     results = train_autoencoder_op(autoencoder, dataset, max_iterations, loss_early_stop)
     return results.collect()
+
+@graph_asset
+def train_autoencoder():
+    return train_text_to_mesh_model()
