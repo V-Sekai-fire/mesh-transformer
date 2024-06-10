@@ -119,7 +119,7 @@ def save_model_op(context, autoencoder, loss):
 
 @op
 def train_autoencoder_asset(model, datasets):
-    return train_autoencoder(model, datasets)
+    return evaluate_model_op(save_model_op(train_autoencoder(model, datasets)))
 
 @op
 def train_autoencoder_twice(model, datasets):
@@ -129,41 +129,40 @@ def train_autoencoder_twice(model, datasets):
 
 @graph_asset
 def autoencoder_01():
-    return save_model_op(train_autoencoder_asset(autoencoder_asset(), datasets_asset()))
-
+    return train_autoencoder_asset(autoencoder_asset(), datasets_asset())
 
 @graph_asset
 def autoencoder_02():
-    return save_model_op(train_autoencoder_twice(autoencoder_01(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_01(), datasets_asset())
 
 @graph_asset
 def autoencoder_04():
-    return save_model_op(train_autoencoder_twice(autoencoder_02(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_02(), datasets_asset())
 
 @graph_asset
 def autoencoder_08():
-    return save_model_op(train_autoencoder_twice(autoencoder_04(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_04(), datasets_asset())
 
 @graph_asset
 def autoencoder_16():
-    return save_model_op(train_autoencoder_twice(autoencoder_08(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_08(), datasets_asset())
 
 @graph_asset
 def autoencoder_32():
-    return save_model_op(train_autoencoder_twice(autoencoder_16(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_16(), datasets_asset())
 
 @graph_asset
 def autoencoder_64():
-    return save_model_op(train_autoencoder_twice(autoencoder_32(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_32(), datasets_asset())
 
 @graph_asset
 def autoencoder_128():
-    return save_model_op(train_autoencoder_twice(autoencoder_64(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_64(), datasets_asset())
 
 @graph_asset
 def autoencoder_256():
-    return save_model_op(train_autoencoder_twice(autoencoder_128(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_128(), datasets_asset())
 
 @graph_asset
 def autoencoder_512():
-    return save_model_op(train_autoencoder_twice(autoencoder_256(), datasets_asset()))
+    return train_autoencoder_twice(autoencoder_256(), datasets_asset())
