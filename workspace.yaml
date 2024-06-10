@@ -1,4 +1,2 @@
 load_from:
   - python_file: train_autoencoder.py
-run_queue:
-  max_concurrent_runs: 1

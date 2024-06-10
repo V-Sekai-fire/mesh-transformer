@@ -1,0 +1,6 @@
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
+  config:
+    dequeue_use_threads: true
+    dequeue_num_workers: 1
