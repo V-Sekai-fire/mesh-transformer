@@ -143,8 +143,9 @@ def get_min_loss():
 
 @op
 def save_and_evaluate_model(autoencoder):
-    save_model(autoencoder)
-    evaluate_model(autoencoder)
+    model, loss = autoencoder
+    save_model(model)
+    evaluate_model(model)
 
 @job
 def train_autoencoder_job():
