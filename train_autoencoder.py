@@ -142,8 +142,8 @@ def get_min_loss():
     return float('inf')
 
 @op
-def save_and_evaluate_model(autoencoders):
-    model = save_model(autoencoders)
+def save_and_evaluate_model(autoencoder):
+    model = save_model(autoencoder)
     evaluate_model(model)
 
 @job
