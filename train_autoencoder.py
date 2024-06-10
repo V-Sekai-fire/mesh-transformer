@@ -135,7 +135,7 @@ def train_epochs(context, autoencoder, dataset, max_epochs, min_loss):
 
 @op
 def get_max_epochs():
-    return 2 # 740
+    return 1 # 740
 
 @op
 def get_min_loss():
@@ -143,8 +143,7 @@ def get_min_loss():
 
 @op
 def save_and_evaluate_model(autoencoders):
-    last_result = autoencoders[-1]
-    model = save_model(last_result)
+    model = save_model(autoencoders)
     evaluate_model(model)
 
 @job
@@ -154,9 +153,7 @@ def train_autoencoder_job():
     max_epochs = get_max_epochs()
     min_loss = get_min_loss()
     epochs = train_epochs(autoencoder, dataset, max_epochs, min_loss)
-    results = epochs.map(save_model)
-    collected_results = results.collect()
-    save_and_evaluate_model(collected_results)
+    epochs.map(save_and_evaluate_model)
 
 if __name__ == "__main__":
     instance = DagsterInstance.get()
