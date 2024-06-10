@@ -103,16 +103,15 @@ def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
         "autoencoder": Out()
     },
 )
-def save_model_op(context, autoencoder, loss):
+def save_model_op(autoencoder, loss):
     pkg = dict(model=autoencoder.state_dict())
-    filename = "./MeshGPT-autoencoder.pt"
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_")
+    filename = f"./MeshGPT-autoencoder-{timestamp}.pt"
     torch.save(pkg, filename)
-    context.log.info(f'Saved model with loss {loss}')
-    
     return Out(
         autoencoder,
         metadata={
-            "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
+            "time": timestamp,
             "loss": str(loss)
         }
     )
