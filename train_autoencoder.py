@@ -10,8 +10,6 @@ import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
 from dagster import execute_job, reconstructable, DagsterInstance, AssetMaterialization, In, Out
 
-AUTOENCODER_EPOCHS = 1 # 480
-
 @op
 def create_autoencoder(context):
     autoencoder = MeshAutoencoder( 
@@ -38,20 +36,6 @@ def load_datasets(context):
     # dataset.sort_dataset_keys()
     return dataset
 
-
-@op
-def train_autoencoder(context, autoencoder, dataset):
-    batch_size=16
-    grad_accum_every =4
-    learning_rate = 1e-3
-    autoencoder.commit_loss_weight = 0.2
-    autoencoder_trainer = MeshAutoencoderTrainer(model =autoencoder ,warmup_steps = 10, dataset = dataset, num_train_steps=100,
-                                             batch_size=batch_size,
-                                             grad_accum_every = grad_accum_every,
-                                             learning_rate = learning_rate,
-                                             checkpoint_every_epoch=5)
-    loss = autoencoder_trainer.train(AUTOENCODER_EPOCHS, diplay_graph= False)   
-    return autoencoder
 
 @op(
     ins={"autoencoder": In(metadata={
@@ -118,11 +102,32 @@ def evaluate_model(context, autoencoder, dataset):
         
     return autoencoder, mse_obj
 
+@op(
+    ins={"autoencoder": In()},
+    out={"loss": Out(),
+         "autoencoder": Out(metadata={
+            "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
+            "model_size_bytes": str(os.path.getsize("./MeshGPT-autoencoder.pt")),
+        })},
+)
+def train_autoencoder(context, autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
+    batch_size=16
+    grad_accum_every =4
+    learning_rate = 1e-3
+    autoencoder.commit_loss_weight = 0.2
+    autoencoder_trainer = MeshAutoencoderTrainer(model =autoencoder ,warmup_steps = 10, dataset = dataset, num_train_steps=100,
+                                             batch_size=batch_size,
+                                             grad_accum_every = grad_accum_every,
+                                             learning_rate = learning_rate,
+                                             checkpoint_every_epoch=5)
+    loss = autoencoder_trainer.train(1, diplay_graph= False)   
+    return (autoencoder, loss)
+
 @job
 def train_autoencoder_job():
     autoencoder = create_autoencoder()
     dataset = load_datasets()
-    trained_autoencoder = train_autoencoder(autoencoder, dataset)
+    trained_autoencoder, _loss = train_autoencoder(autoencoder, dataset)
     evaluate_model(autoencoder, dataset)
     save_model(trained_autoencoder)
 

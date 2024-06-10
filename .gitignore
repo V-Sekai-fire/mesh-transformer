@@ -5,3 +5,5 @@ MeshGPT-transformer_trained.pt
 *.npz
 *.pt
 mse_rows.obj
+
+__pycache__/
