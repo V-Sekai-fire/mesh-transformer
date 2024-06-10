@@ -8,7 +8,7 @@ import random
 import tqdm
 import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
-from dagster import execute_job, reconstructable, DagsterInstance, AssetMaterialization, In, Out
+from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut
 
 @op
 def create_autoencoder(context):
@@ -50,7 +50,7 @@ def save_model(context, autoencoder):
     pkg = dict( model = autoencoder.state_dict(), )
     filename = "./MeshGPT-autoencoder.pt"
     torch.save(pkg, filename)
-    return autoencoder
+    context.log.info(f'Saved model with loss {autoencoder[1]}')
 
 @op(
     ins={"dataset": In(),
@@ -123,13 +123,40 @@ def train_autoencoder(context, autoencoder, dataset) -> tuple[MeshAutoencoder, f
     loss = autoencoder_trainer.train(1, diplay_graph= False)   
     return (autoencoder, loss)
 
+
+@op(ins={"autoencoder": In(), "dataset": In(), "max_epochs": In(), "min_loss": In()}, out=DynamicOut())
+def train_epochs(context, autoencoder, dataset, max_epochs, min_loss):
+    for epoch in range(max_epochs):
+        autoencoder, loss = train_autoencoder(autoencoder, dataset)
+        
+        if loss < min_loss:
+            min_loss = loss
+            context.log.info(f'New minimum loss {min_loss} at epoch {epoch}')
+            
+        yield DynamicOut(value=(autoencoder, loss), mapping_key=str(epoch))
+        
+        if loss <= 0.001:
+            break
+
+@op
+def max_epochs():
+    return 1 #
+
+@op
+def min_loss():
+    return float('inf')
+
+@op
+def save_and_evaluate_model(autoencoder):
+    save_model(autoencoder)
+    evaluate_model(autoencoder)
+
 @job
 def train_autoencoder_job():
     autoencoder = create_autoencoder()
     dataset = load_datasets()
-    trained_autoencoder, _loss = train_autoencoder(autoencoder, dataset)
-    evaluate_model(autoencoder, dataset)
-    save_model(trained_autoencoder)
+    epochs = train_epochs(autoencoder, dataset, max_epochs(), min_loss())
+    epochs.map(save_model).map(save_and_evaluate_model)
 
 if __name__ == "__main__":
     instance = DagsterInstance.get()
