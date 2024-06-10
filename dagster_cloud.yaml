@@ -1,4 +1,0 @@
-locations:
-  - location_name: train_autoencoder
-    code_source:
-      python_file: train_autoencoder.py
