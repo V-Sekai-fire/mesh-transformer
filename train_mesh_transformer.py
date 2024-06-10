@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: MIT OR Apache-2.0
 # Copyright (c) 2024 MarcusLoppe & K. S. Ernest (iFire) Lee
 
 from dagster import op, execute_job, job, reconstructable, DagsterInstance
