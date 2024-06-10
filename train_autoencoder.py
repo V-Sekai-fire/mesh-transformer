@@ -52,6 +52,7 @@ def save_model(context, autoencoder):
     filename = "./MeshGPT-autoencoder.pt"
     torch.save(pkg, filename)
     context.log.info(f'Saved model with loss {loss}')
+    return autoencoder_model
 
 @op(
     ins={"dataset": In(),
@@ -143,9 +144,8 @@ def get_min_loss():
 
 @op
 def save_and_evaluate_model(autoencoder):
-    model, _loss = autoencoder
-    save_model(model)
-    evaluate_model(model)
+    save_model(autoencoder)
+    evaluate_model(autoencoder)
 
 @job
 def train_autoencoder_job():
