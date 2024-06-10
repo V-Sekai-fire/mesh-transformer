@@ -124,35 +124,31 @@ def train_autoencoder_asset(model, datasets):
     return train_autoencoder(model, datasets)
 
 @op
-def train_autoencoder_2x(model, datasets):
+def train_autoencoder_twice(model, datasets):
     model, _loss = train_autoencoder_asset(model, datasets)
     model, _loss = train_autoencoder_asset(model, datasets)
     return model
-
-@op
-def train_autoencoder_4x(model, datasets):
-    model, _loss = train_autoencoder_2x(model, datasets)
-    model, _loss = train_autoencoder_2x(model, datasets)
-    return model
-
-@op
-def train_autoencoder_16x(model, datasets):
-    model, _loss = train_autoencoder_4x(model, datasets)
-    model, _loss = train_autoencoder_4x(model, datasets)
-    return model
-
-@asset
-def train_autoencoder_2x_asset(model, datasets):
-    return train_autoencoder_2x(model, datasets)
-
-@asset
-def train_autoencoder_4x_asset(model, datasets):
-    return train_autoencoder_4x(model, datasets)
-
-@asset
-def train_autoencoder_16x_asset(model, datasets):
-    return train_autoencoder_16x(model, datasets)
 
 @graph_asset
-def autoencoder_graph_root_asset():    
-    return train_autoencoder(autoencoder_asset(), datasets_asset())
+def autoencoder_graph_root_asset():
+    return train_autoencoder_asset(autoencoder_asset(), datasets_asset())
+
+@graph_asset
+def autoencoder_02_epochs_asset():
+    return train_autoencoder_twice(autoencoder_graph_root_asset(), datasets_asset())
+
+@graph_asset
+def autoencoder_04_epoch_asset():
+    return train_autoencoder_twice(autoencoder_02_epochs_asset(), datasets_asset())
+
+@graph_asset
+def autoencoder_08_epoch_asset():
+    return train_autoencoder_twice(autoencoder_04_epoch_asset(), datasets_asset())
+
+@graph_asset
+def autoencoder_16_epoch_asset():
+    return train_autoencoder_twice(autoencoder_08_epoch_asset(), datasets_asset())
+
+@graph_asset
+def autoencoder_32_epoch_asset():
+    return train_autoencoder_twice(autoencoder_16_epoch_asset(), datasets_asset())
