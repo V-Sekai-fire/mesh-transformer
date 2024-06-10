@@ -89,13 +89,22 @@ def train_autoencoder(autoencoder, dataset) -> tuple[object, float]:
     grad_accum_every =4
     learning_rate = 1e-3
     autoencoder.commit_loss_weight = 0.2
-    autoencoder_trainer = MeshAutoencoderTrainer(model =autoencoder ,warmup_steps = 10, dataset = dataset, num_train_steps=100,
-                                             batch_size=batch_size,
-                                             grad_accum_every = grad_accum_every,
-                                             learning_rate = learning_rate,
-                                             checkpoint_every_epoch=5)
-    loss = autoencoder_trainer.train(1, diplay_graph= False)   
-    return (autoencoder, loss)
+    if True:
+        autoencoder_trainer = MeshAutoencoderTrainer(model =autoencoder ,warmup_steps = 10, dataset = dataset, num_train_steps=100,
+                                                batch_size=batch_size,
+                                                grad_accum_every = grad_accum_every,
+                                                learning_rate = learning_rate,
+                                                checkpoint_every_epoch=5)
+        loss = 1
+        return (autoencoder, loss)
+    else:
+        MeshAutoencoderTrainer(model =autoencoder ,warmup_steps = 10, dataset = dataset, num_train_steps=100,
+                                                batch_size=batch_size,
+                                                grad_accum_every = grad_accum_every,
+                                                learning_rate = learning_rate,
+                                                checkpoint_every_epoch=5)
+        loss = autoencoder_trainer.train(1, diplay_graph= False)   
+        return (autoencoder, loss)
 
 @op(
     ins={"autoencoder": In()},
