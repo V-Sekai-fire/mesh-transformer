@@ -135,7 +135,7 @@ def save_model_op(context, autoencoder, loss):
     )
 
 @op
-def train_text_to_mesh_model():
+def train_text_to_mesh_model(context):
     max_iterations = 1
     loss_early_stop = 0.1
     autoencoder = create_autoencoder_op()
