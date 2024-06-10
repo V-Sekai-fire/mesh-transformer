@@ -10,6 +10,8 @@ import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
 from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput
 
+MAX_EPOCHS = 1
+
 @op
 def create_autoencoder(context):
     autoencoder = MeshAutoencoder( 
@@ -38,21 +40,19 @@ def load_datasets(context):
 
 
 @op(
-    ins={"autoencoder": In(metadata={
-            "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
-            "model_size_bytes": str(os.path.getsize("./MeshGPT-autoencoder.pt")),
-        })},
+    ins={"autoencoder": In()},
     out={
-        "trained_autoencoder": Out(is_required=True)
+        "autoencoder": Out(metadata={
+            "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
+        }, is_required=True)
     },
 )
-def save_model(context, autoencoder):
-    trained_autoencoder, loss = autoencoder
-    pkg = dict( model = trained_autoencoder.state_dict(), )
+def save_model(context, autoencoder, loss):
+    pkg = dict( model = autoencoder.state_dict(), )
     filename = "./MeshGPT-autoencoder.pt"
     torch.save(pkg, filename)
     context.log.info(f'Saved model with loss {loss}')
-    return trained_autoencoder
+    return autoencoder
 
 @op(
     ins={"dataset": In(),
@@ -97,14 +97,15 @@ def evaluate_model(context, autoencoder, dataset):
             all_random_samples.extend([ random_samples])
             random_samples, random_samples_pred = [], []
 
-    print(f'MSE AVG: {total_mse / sample_size:.10f}, Min: {min_mse:.10f}, Max: {max_mse:.10f}')    
+    context.log.info(f'MSE AVG: {total_mse / sample_size:.10f}, Min: {min_mse:.10f}, Max: {max_mse:.10f}')
     mesh_render.save_rendering('./mse_rows.obj', all_random_samples)
     with open("./mse_rows.obj", "r") as file:
         mse_obj = file.read()
         
     return autoencoder, mse_obj
 
-def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
+@op(ins={"autoencoder": In(), "dataset": In()}, out={"autoencoder": Out(), "loss": Out()})
+def train_autoencoder(context, autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     batch_size=16
     grad_accum_every =4
     learning_rate = 1e-3
@@ -114,45 +115,16 @@ def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
                                              grad_accum_every = grad_accum_every,
                                              learning_rate = learning_rate,
                                              checkpoint_every_epoch=5)
-    loss = autoencoder_trainer.train(1, diplay_graph= False)   
+    loss = autoencoder_trainer.train(MAX_EPOCHS, diplay_graph= False)   
     return (autoencoder, loss)
-
-@op(ins={"autoencoder": In(), "dataset": In(), "max_epochs": In(), "min_loss": In()}, out=DynamicOut(is_required=True))
-def train_epochs(context, autoencoder, dataset, max_epochs, min_loss):
-    for epoch in range(max_epochs):
-        trained_autoencoder = train_autoencoder(autoencoder, dataset)
-        new_autoencoder, new_loss = trained_autoencoder 
-        
-        if new_loss < min_loss:
-            min_loss = new_loss
-            context.log.info(f'New minimum loss {min_loss} at epoch {epoch}')
-            
-        yield DynamicOutput((new_autoencoder, new_loss), mapping_key=str(epoch))
-        
-        if new_loss <= 0.01:
-            break
-
-@op
-def get_max_epochs():
-    return 1 # 740
-
-@op
-def get_min_loss():
-    return float('inf')
-
-@op(ins={"autoencoder": In()})
-def save_and_evaluate_model(context, autoencoder):
-    model = save_model(autoencoder)
-    evaluate_model(model)
 
 @job
 def train_autoencoder_job():
     autoencoder = create_autoencoder()
     dataset = load_datasets()
-    max_epochs = get_max_epochs()
-    min_loss = get_min_loss()
-    epochs = train_epochs(autoencoder, dataset, max_epochs, min_loss)
-    epochs.map(save_and_evaluate_model)
+    model, loss = train_autoencoder(autoencoder, dataset)
+    save_model(model, loss)
+    evaluate_model(model, dataset)
 
 if __name__ == "__main__":
     instance = DagsterInstance.get()
