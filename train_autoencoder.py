@@ -10,10 +10,8 @@ import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
 from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput
 
-MAX_EPOCHS = 1
-
 @op
-def create_autoencoder(context):
+def create_autoencoder_op(context):
     autoencoder = MeshAutoencoder( 
         decoder_dims_through_depth =  (128,) * 6 + (192,) * 12 + (256,) * 24 + (384,) * 6,    
         dim_codebook = 192,  
@@ -27,7 +25,7 @@ def create_autoencoder(context):
     return autoencoder
 
 @op
-def load_datasets(context):
+def load_datasets_op(context):
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
     # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
     # dataset.data.extend(dataset2.data)  
@@ -47,7 +45,7 @@ def load_datasets(context):
         }, is_required=True)
     },
 )
-def save_model(context, autoencoder, loss):
+def save_model_op(context, autoencoder, loss):
     pkg = dict( model = autoencoder.state_dict(), )
     filename = "./MeshGPT-autoencoder.pt"
     torch.save(pkg, filename)
@@ -65,7 +63,7 @@ def save_model(context, autoencoder, loss):
         "mse_obj": Out(is_required=True),
     },
 )
-def evaluate_model(context, autoencoder, dataset):
+def evaluate_model_op(context, autoencoder, dataset):
     min_mse, max_mse = float('inf'), float('-inf')
     min_coords, min_orgs, max_coords, max_orgs = None, None, None, None
     random_samples, random_samples_pred, all_random_samples = [], [], []
@@ -117,33 +115,45 @@ def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     loss = autoencoder_trainer.train(1, diplay_graph= False)   
     return (autoencoder, loss)
 
-@op(
-    config_schema={
-    },
-    out=DynamicOut(dict),
-)
-def train_autoencoder_op(context,autoencoder, dataset):
-    for i in range(740):
-        model, loss = train_autoencoder(autoencoder, dataset)
-        yield DynamicOutput({"model": model, "loss": loss}, mapping_key=str(i))
-        if loss < 0.01:
-            break
+@op
+def get_max_iterations_op(context):
+    return 1
 
 @op
-def save_and_evaluate_model(context, model_loss_dict):
+def get_loss_early_stop_op(context):
+    return 0.1
+
+@op(
+    ins={"autoencoder": In(),
+        "dataset": In(),
+        "max_iterations": In(),
+        "loss_early_stop": In()},
+    out=DynamicOut(dict),
+)
+def train_autoencoder_op(context, autoencoder, dataset, max_iterations, loss_early_stop):
+    for i in range(max_iterations):
+        model, loss = train_autoencoder(autoencoder, dataset)
+        yield DynamicOutput({"model": model, "loss": loss}, mapping_key=str(i))
+        if loss < loss_early_stop:
+            break
+        
+@op
+def save_and_evaluate_model_op(context, model_loss_dict):
     model = model_loss_dict["model"]
     loss = model_loss_dict["loss"]
 
-    save_model(model, loss)
-    dataset = load_datasets()
-    evaluate_model(model, dataset)
+    save_model_op(model, loss)
+    dataset = load_datasets_op()
+    evaluate_model_op(model, dataset)
 
 @job
 def train_autoencoder_job():
-    autoencoder = create_autoencoder()
-    dataset = load_datasets()
-    results = train_autoencoder_op(autoencoder, dataset)
-    results.map(save_and_evaluate_model)
+    autoencoder = create_autoencoder_op()
+    dataset = load_datasets_op()
+    max_iteration = get_max_iterations_op()
+    loss_early_stop = get_loss_early_stop_op()
+    results = train_autoencoder_op(autoencoder, dataset, max_iteration, loss_early_stop)
+    results.map(save_and_evaluate_model_op)
 
 if __name__ == "__main__":
     instance = DagsterInstance.get()
