@@ -140,8 +140,10 @@ def save_and_evaluate_model_op(context, model_loss_dict):
     loss = model_loss_dict["loss"]
 
 
-@job
-def train_autoencoder_job(max_iterations: In(int), loss_early_stop: In(float)):
+@op(
+    ins={"max_iterations": In(), "loss_early_stop": In(),},
+)
+def train_autoencoder_op(context, max_iterations, loss_early_stop):
     autoencoder = create_autoencoder_op()
     dataset = load_datasets_op()
     results = train_autoencoder_op(autoencoder, dataset, max_iterations, loss_early_stop)
