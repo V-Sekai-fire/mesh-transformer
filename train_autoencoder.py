@@ -8,7 +8,7 @@ import random
 import tqdm
 import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
-from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput
+from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset
 
 @op
 def create_autoencoder_op(context):
@@ -134,17 +134,11 @@ def save_model_op(context, autoencoder, loss):
         }
     )
 
-@op
-def save_and_evaluate_model_op(context, model_loss_dict):
-    model = model_loss_dict["model"]
-    loss = model_loss_dict["loss"]
-
-
-@op(
-    ins={"max_iterations": In(), "loss_early_stop": In(),},
-)
-def train_autoencoder_op(context, max_iterations, loss_early_stop):
+@graph_asset
+def train_autoencoder():
+    max_iterations = 1
+    loss_early_stop = 0.1
     autoencoder = create_autoencoder_op()
     dataset = load_datasets_op()
     results = train_autoencoder_op(autoencoder, dataset, max_iterations, loss_early_stop)
-    results.map(save_and_evaluate_model_op)
+    return results.collect()
