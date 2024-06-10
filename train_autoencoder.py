@@ -8,9 +8,9 @@ import random
 import tqdm
 import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
-from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset
+from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset
 
-@op
+@asset
 def create_autoencoder_op(context):
     autoencoder = MeshAutoencoder( 
         decoder_dims_through_depth =  (128,) * 6 + (192,) * 12 + (256,) * 24 + (384,) * 6,    
@@ -24,7 +24,7 @@ def create_autoencoder_op(context):
     ).to("cuda")     
     return autoencoder
 
-@op
+@asset
 def load_datasets_op(context):
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
     # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
@@ -99,19 +99,12 @@ def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     loss = autoencoder_trainer.train(1, diplay_graph= False)   
     return (autoencoder, loss)
 
-@op(
-    ins={"autoencoder": In(),
-        "dataset": In(),
-        "max_iterations": In(),
-        "loss_early_stop": In()},
-    out=DynamicOut(dict),
-)
-def train_autoencoder_op(context, autoencoder, dataset, max_iterations, loss_early_stop):
-    for i in range(max_iterations):
-        model, loss = train_autoencoder(autoencoder, dataset)
-        yield DynamicOutput({"model": model, "loss": loss}, mapping_key=str(i))
-        if loss < loss_early_stop:
-            break
+@op()
+def train_autoencoder_op(context):
+    autoencoder = create_autoencoder_op()
+    dataset = load_datasets_op()
+    model, loss = train_autoencoder(autoencoder, dataset)
+    return {"model": model, "loss": loss}
 
 
 @op(
@@ -134,15 +127,6 @@ def save_model_op(context, autoencoder, loss):
         }
     )
 
-@op
-def train_text_to_mesh_model(context):
-    max_iterations = 1
-    loss_early_stop = 0.1
-    autoencoder = create_autoencoder_op()
-    dataset = load_datasets_op()
-    results = train_autoencoder_op(autoencoder, dataset, max_iterations, loss_early_stop)
-    return results.collect()
-
 @graph_asset
 def train_autoencoder():
-    return train_text_to_mesh_model()
+    return train_autoencoder_op()
