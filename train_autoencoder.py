@@ -46,11 +46,12 @@ def load_datasets(context):
         "trained_autoencoder": Out(is_required=False)
     },
 )
-def save_model(context, autoencoder):
+def save_model(context, autoencoder_tuple):
+    autoencoder, loss = autoencoder_tuple
     pkg = dict( model = autoencoder.state_dict(), )
     filename = "./MeshGPT-autoencoder.pt"
     torch.save(pkg, filename)
-    context.log.info(f'Saved model with loss {autoencoder[1]}')
+    context.log.info(f'Saved model with loss {loss}')
 
 @op(
     ins={"dataset": In(),
