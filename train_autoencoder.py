@@ -10,7 +10,7 @@ import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
 from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset
 
-@op
+@asset
 def create_autoencoder_op():
     autoencoder = MeshAutoencoder( 
         decoder_dims_through_depth =  (128,) * 6 + (192,) * 12 + (256,) * 24 + (384,) * 6,    
@@ -24,7 +24,7 @@ def create_autoencoder_op():
     ).to("cuda")     
     return autoencoder
 
-@op
+@asset
 def load_datasets_op():
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
     # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
@@ -86,7 +86,7 @@ def evaluate_model_op(context, autoencoder, dataset):
         
     return autoencoder, mse_obj
 
-@asset
+@op
 def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     batch_size=16
     grad_accum_every =4
