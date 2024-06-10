@@ -139,11 +139,11 @@ def train_epochs(context, autoencoder, dataset, max_epochs, min_loss):
             break
 
 @op
-def max_epochs():
-    return 1 #
+def get_max_epochs():
+    return 1 # 740
 
 @op
-def min_loss():
+def get_min_loss():
     return float('inf')
 
 @op
@@ -155,7 +155,9 @@ def save_and_evaluate_model(autoencoder):
 def train_autoencoder_job():
     autoencoder = create_autoencoder()
     dataset = load_datasets()
-    epochs = train_epochs(autoencoder, dataset, max_epochs(), min_loss())
+    max_epochs = get_max_epochs()
+    min_loss = get_min_loss()
+    epochs = train_epochs(autoencoder, dataset, max_epochs, min_loss)
     epochs.map(save_model).map(save_and_evaluate_model)
 
 if __name__ == "__main__":
