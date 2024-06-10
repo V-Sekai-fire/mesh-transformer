@@ -104,11 +104,11 @@ def evaluate_model(context, autoencoder, dataset):
 
 @op(
     ins={"autoencoder": In()},
-    out={"loss": Out(),
-         "autoencoder": Out(metadata={
+    out={"autoencoder": Out(metadata={
             "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
             "model_size_bytes": str(os.path.getsize("./MeshGPT-autoencoder.pt")),
-        })},
+        }),
+        "loss": Out()},
 )
 def train_autoencoder(context, autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     batch_size=16
