@@ -137,7 +137,7 @@ def autoencoder_02():
 
 @graph_asset
 def autoencoder_04():
-    return train_autoencoder_twice(autoencoder_04(), datasets_asset())
+    return train_autoencoder_twice(autoencoder_02(), datasets_asset())
 
 @graph_asset
 def autoencoder_08():
