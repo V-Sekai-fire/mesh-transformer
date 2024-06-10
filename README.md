@@ -10,8 +10,9 @@ Also converted ipynb to py.
 
 ```
 pip install jupytext
-jupytext --to ipynb mesh_trainer.py
-rm -rf mesh_trainer.py
+#jupytext --to ipynb mesh_trainer.py
+jupytext --to py mesh_trainer.py
+rm -rf mesh_trainer.ipynb
 ```
 
 # Plan
