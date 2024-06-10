@@ -150,3 +150,19 @@ def autoencoder_16():
 @graph_asset
 def autoencoder_32():
     return train_autoencoder_twice(autoencoder_16(), datasets_asset())
+
+@graph_asset
+def autoencoder_64():
+    return train_autoencoder_twice(autoencoder_32(), datasets_asset())
+
+@graph_asset
+def autoencoder_128():
+    return train_autoencoder_twice(autoencoder_64(), datasets_asset())
+
+@graph_asset
+def autoencoder_256():
+    return train_autoencoder_twice(autoencoder_128(), datasets_asset())
+
+@graph_asset
+def autoencoder_512():
+    return train_autoencoder_twice(autoencoder_256(), datasets_asset())
