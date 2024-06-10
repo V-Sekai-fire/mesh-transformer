@@ -10,7 +10,7 @@ import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
 from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset
 
-@asset
+@op
 def create_autoencoder_op(context):
     autoencoder = MeshAutoencoder( 
         decoder_dims_through_depth =  (128,) * 6 + (192,) * 12 + (256,) * 24 + (384,) * 6,    
@@ -24,7 +24,7 @@ def create_autoencoder_op(context):
     ).to("cuda")     
     return autoencoder
 
-@asset
+@op
 def load_datasets_op(context):
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
     # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
@@ -99,14 +99,6 @@ def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     loss = autoencoder_trainer.train(1, diplay_graph= False)   
     return (autoencoder, loss)
 
-@op()
-def train_autoencoder_op(context):
-    autoencoder = create_autoencoder_op()
-    dataset = load_datasets_op()
-    model, loss = train_autoencoder(autoencoder, dataset)
-    return {"model": model, "loss": loss}
-
-
 @op(
     ins={"autoencoder": In()},
     out={
@@ -127,6 +119,13 @@ def save_model_op(context, autoencoder, loss):
         }
     )
 
+@op
+def train_autoencoder(context):
+    autoencoder = create_autoencoder_op()
+    dataset = load_datasets_op()
+    model, loss = train_autoencoder(autoencoder, dataset)
+    return {"model": model, "loss": loss}
+
 @graph_asset
-def train_autoencoder():
-    return train_autoencoder_op()
+def train_autoencoder_asset():
+    return train_autoencoder()
