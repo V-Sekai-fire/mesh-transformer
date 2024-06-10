@@ -27,15 +27,14 @@ def autoencoder_asset():
 @asset
 def datasets_asset():
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
-    # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
-    # dataset.data.extend(dataset2.data)  
-    # dataset2 = MeshDataset.load("./shapenet_250f_21.9M_84_labels_21560_10_min_x10_aug.npz")  
-    # dataset.data.extend(dataset2.data)
-    # dataset2 = MeshDataset.load("./objverse_250f_229.7M_3086_labels_268650_10_min_x5_aug.npz")
-    # dataset.data.extend(dataset2.data) 
-    # dataset.sort_dataset_keys()
+    dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
+    dataset.data.extend(dataset2.data)  
+    dataset2 = MeshDataset.load("./shapenet_250f_21.9M_84_labels_21560_10_min_x10_aug.npz")  
+    dataset.data.extend(dataset2.data)
+    dataset2 = MeshDataset.load("./objverse_250f_229.7M_3086_labels_268650_10_min_x5_aug.npz")
+    dataset.data.extend(dataset2.data) 
+    dataset.sort_dataset_keys()
     return dataset
-
 
 @op(
     ins={"dataset": In(),
@@ -120,7 +119,40 @@ def save_model_op(context, autoencoder, loss):
         }
     )
 
-@graph_asset
-def autoencoder_graph_asset():    
-    return train_autoencoder(autoencoder_asset(), datasets_asset())
+@op
+def train_autoencoder_asset(model, datasets):
+    return train_autoencoder(model, datasets)
 
+@op
+def train_autoencoder_2x(model, datasets):
+    model, _loss = train_autoencoder_asset(model, datasets)
+    model, _loss = train_autoencoder_asset(model, datasets)
+    return model
+
+@op
+def train_autoencoder_4x(model, datasets):
+    model, _loss = train_autoencoder_2x(model, datasets)
+    model, _loss = train_autoencoder_2x(model, datasets)
+    return model
+
+@op
+def train_autoencoder_16x(model, datasets):
+    model, _loss = train_autoencoder_4x(model, datasets)
+    model, _loss = train_autoencoder_4x(model, datasets)
+    return model
+
+@asset
+def train_autoencoder_2x_asset(model, datasets):
+    return train_autoencoder_2x(model, datasets)
+
+@asset
+def train_autoencoder_4x_asset(model, datasets):
+    return train_autoencoder_4x(model, datasets)
+
+@asset
+def train_autoencoder_16x_asset(model, datasets):
+    return train_autoencoder_16x(model, datasets)
+
+@graph_asset
+def autoencoder_graph_root_asset():    
+    return train_autoencoder(autoencoder_asset(), datasets_asset())
