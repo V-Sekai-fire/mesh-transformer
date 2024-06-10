@@ -9,7 +9,7 @@ from tqdm import tqdm
 from meshgpt_pytorch import mesh_render 
 
 from dagster import execute_job, reconstructable, DagsterInstance
-from train_autoencoder import train_autoencoder_job, create_autoencoder, train_autoencoder, save_model, evaluate_model
+from train_autoencoder import train_autoencoder_job, autoencoder_asset, train_autoencoder, save_model, evaluate_model
 
 from meshgpt_pytorch import (
     MeshTransformerTrainer,
@@ -76,7 +76,7 @@ def train_transformer(context, transformer, dataset):
 
 @job
 def training_pipeline():
-    autoencoder = create_autoencoder()
+    autoencoder = autoencoder_asset()
     dataset = load_datasets()
     trained_autoencoder = train_autoencoder(autoencoder, dataset)
     saved_model = save_model(trained_autoencoder)

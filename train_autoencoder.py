@@ -11,7 +11,7 @@ from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset
 from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset
 
 @asset
-def create_autoencoder_op():
+def autoencoder_asset():
     autoencoder = MeshAutoencoder( 
         decoder_dims_through_depth =  (128,) * 6 + (192,) * 12 + (256,) * 24 + (384,) * 6,    
         dim_codebook = 192,  
@@ -25,7 +25,7 @@ def create_autoencoder_op():
     return autoencoder
 
 @asset
-def load_datasets_op():
+def datasets_asset():
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
     # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
     # dataset.data.extend(dataset2.data)  
@@ -121,6 +121,6 @@ def save_model_op(context, autoencoder, loss):
     )
 
 @graph_asset
-def train_autoencoder_asset():    
-    return train_autoencoder(create_autoencoder_op(), load_datasets_op())
+def autoencoder_graph_asset():    
+    return train_autoencoder(autoencoder_asset(), datasets_asset())
 
