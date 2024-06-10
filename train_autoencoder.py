@@ -8,7 +8,7 @@ import random
 import tqdm
 import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
-from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut
+from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOutput
 
 @op
 def create_autoencoder(context):
