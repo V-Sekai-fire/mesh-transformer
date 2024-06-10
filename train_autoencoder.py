@@ -43,16 +43,16 @@ def load_datasets(context):
             "model_size_bytes": str(os.path.getsize("./MeshGPT-autoencoder.pt")),
         })},
     out={
-        "trained_autoencoder": Out(is_required=False)
+        "trained_autoencoder": Out(is_required=True)
     },
 )
 def save_model(context, autoencoder):
-    autoencoder_model, loss = autoencoder
-    pkg = dict( model = autoencoder_model.state_dict(), )
+    trained_autoencoder, loss = autoencoder
+    pkg = dict( model = trained_autoencoder.state_dict(), )
     filename = "./MeshGPT-autoencoder.pt"
     torch.save(pkg, filename)
     context.log.info(f'Saved model with loss {loss}')
-    return autoencoder_model
+    return trained_autoencoder
 
 @op(
     ins={"dataset": In(),
@@ -61,8 +61,8 @@ def save_model(context, autoencoder):
             "model_size_bytes": str(os.path.getsize("./MeshGPT-autoencoder.pt")),
         })},
     out={
-        "autoencoder": Out(),
-        "mse_obj": Out()
+        "autoencoder": Out(is_required=True),
+        "mse_obj": Out(is_required=True),
     },
 )
 def evaluate_model(context, autoencoder, dataset):
@@ -118,8 +118,7 @@ def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     loss = autoencoder_trainer.train(1, diplay_graph= False)   
     return (autoencoder, loss)
 
-
-@op(ins={"autoencoder": In(), "dataset": In(), "max_epochs": In(), "min_loss": In()}, out=DynamicOut())
+@op(ins={"autoencoder": In(), "dataset": In(), "max_epochs": In(), "min_loss": In()}, out=DynamicOut(is_required=True))
 def train_epochs(context, autoencoder, dataset, max_epochs, min_loss):
     for epoch in range(max_epochs):
         trained_autoencoder = train_autoencoder(autoencoder, dataset)
