@@ -117,8 +117,6 @@ def get_loss_early_stop_op(context):
 def train_autoencoder_op(context, autoencoder, dataset, max_iterations, loss_early_stop):
     for i in range(max_iterations):
         model, loss = train_autoencoder(autoencoder, dataset)
-        save_model_op(model, loss)
-        evaluate_model_op(model, dataset)
         yield DynamicOutput({"model": model, "loss": loss}, mapping_key=str(i))
         if loss < loss_early_stop:
             break
@@ -156,7 +154,8 @@ def train_autoencoder_job():
     dataset = load_datasets_op()
     max_iteration = get_max_iterations_op()
     loss_early_stop = get_loss_early_stop_op()
-    train_autoencoder_op(autoencoder, dataset, max_iteration, loss_early_stop)
+    results = train_autoencoder_op(autoencoder, dataset, max_iteration, loss_early_stop)
+    results.map(save_and_evaluate_model_op)
 
 if __name__ == "__main__":
     instance = DagsterInstance.get()
