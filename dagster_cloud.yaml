@@ -1,8 +1,4 @@
 locations:
   - location_name: train_autoencoder
     code_source:
-      package_name: train_autoencoder
-    # build:
-    #   directory: ./
-    #   registry: <account-id>.dkr.ecr.us-west-2.amazonaws.com/<image-name>
-    #   # registry: ghcr.io/<org>/<image-name>
+      python_file: train_autoencoder.py
