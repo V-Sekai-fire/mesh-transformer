@@ -38,25 +38,9 @@ def load_datasets_op(context):
 
 
 @op(
-    ins={"autoencoder": In()},
-    out={
-        "autoencoder": Out(metadata={
-            "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
-        }, is_required=True)
-    },
-)
-def save_model_op(context, autoencoder, loss):
-    pkg = dict( model = autoencoder.state_dict(), )
-    filename = "./MeshGPT-autoencoder.pt"
-    torch.save(pkg, filename)
-    context.log.info(f'Saved model with loss {loss}')
-    return autoencoder
-
-@op(
     ins={"dataset": In(),
          "autoencoder": In(metadata={
             "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
-            "model_size_bytes": str(os.path.getsize("./MeshGPT-autoencoder.pt")),
         })},
     out={
         "autoencoder": Out(is_required=True),
@@ -133,18 +117,38 @@ def get_loss_early_stop_op(context):
 def train_autoencoder_op(context, autoencoder, dataset, max_iterations, loss_early_stop):
     for i in range(max_iterations):
         model, loss = train_autoencoder(autoencoder, dataset)
+        save_model_op(model, loss)
+        evaluate_model_op(model, dataset)
         yield DynamicOutput({"model": model, "loss": loss}, mapping_key=str(i))
         if loss < loss_early_stop:
             break
-        
+
+
+@op(
+    ins={"autoencoder": In()},
+    out={
+        "autoencoder": Out()
+    },
+)
+def save_model_op(context, autoencoder, loss):
+    pkg = dict(model=autoencoder.state_dict())
+    filename = "./MeshGPT-autoencoder.pt"
+    torch.save(pkg, filename)
+    context.log.info(f'Saved model with loss {loss}')
+    
+    return Out(
+        autoencoder,
+        metadata={
+            "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
+            "loss": str(loss)
+        }
+    )
+
 @op
 def save_and_evaluate_model_op(context, model_loss_dict):
     model = model_loss_dict["model"]
     loss = model_loss_dict["loss"]
 
-    save_model_op(model, loss)
-    dataset = load_datasets_op()
-    evaluate_model_op(model, dataset)
 
 @job
 def train_autoencoder_job():
@@ -152,8 +156,7 @@ def train_autoencoder_job():
     dataset = load_datasets_op()
     max_iteration = get_max_iterations_op()
     loss_early_stop = get_loss_early_stop_op()
-    results = train_autoencoder_op(autoencoder, dataset, max_iteration, loss_early_stop)
-    results.map(save_and_evaluate_model_op)
+    train_autoencoder_op(autoencoder, dataset, max_iteration, loss_early_stop)
 
 if __name__ == "__main__":
     instance = DagsterInstance.get()
