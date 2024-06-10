@@ -99,14 +99,6 @@ def train_autoencoder(autoencoder, dataset) -> tuple[MeshAutoencoder, float]:
     loss = autoencoder_trainer.train(1, diplay_graph= False)   
     return (autoencoder, loss)
 
-@op
-def get_max_iterations_op(context):
-    return 1
-
-@op
-def get_loss_early_stop_op(context):
-    return 0.1
-
 @op(
     ins={"autoencoder": In(),
         "dataset": In(),
@@ -149,14 +141,8 @@ def save_and_evaluate_model_op(context, model_loss_dict):
 
 
 @job
-def train_autoencoder_job():
+def train_autoencoder_job(max_iterations: In(int), loss_early_stop: In(float)):
     autoencoder = create_autoencoder_op()
     dataset = load_datasets_op()
-    max_iteration = get_max_iterations_op()
-    loss_early_stop = get_loss_early_stop_op()
-    results = train_autoencoder_op(autoencoder, dataset, max_iteration, loss_early_stop)
+    results = train_autoencoder_op(autoencoder, dataset, max_iterations, loss_early_stop)
     results.map(save_and_evaluate_model_op)
-
-if __name__ == "__main__":
-    instance = DagsterInstance.get()
-    result = execute_job(reconstructable(train_autoencoder_job), instance=instance)
