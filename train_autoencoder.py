@@ -78,7 +78,8 @@ def evaluate_model_op(context, autoencoder, dataset):
 
     context.log.info(f'MSE AVG: {total_mse / sample_size:.10f}, Min: {min_mse:.10f}, Max: {max_mse:.10f}')
     mesh_render.save_rendering('./mse_rows.obj', all_random_samples)
-    with open("./mse_rows.obj", "r") as file:
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_")
+    with open(f"./mse_rows_{timestamp}.obj", "r") as file:
         mse_obj = file.read()
         
     return autoencoder, mse_obj
@@ -106,7 +107,7 @@ def train_autoencoder(autoencoder, dataset):
 def save_model_op(autoencoder, loss):
     pkg = dict(model=autoencoder.state_dict())
     timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_")
-    filename = f"./MeshGPT-autoencoder-{timestamp}.pt"
+    filename = f"./MeshGPT_autoencoder_{timestamp}.pt"
     torch.save(pkg, filename)
     return Out(
         autoencoder,
