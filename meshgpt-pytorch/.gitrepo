@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/MarcusLoppe/meshgpt-pytorch.git
+	branch = main
+	commit = b5e74674973de4a97431561d7723d9b29629a695
+	parent = 8360b5d7e0c7c1da7ea31cec3ae0b93051aff469
+	method = merge
+	cmdver = 0.4.6

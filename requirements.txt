@@ -1,0 +1,7 @@
+dagster
+dagit
+torch
+torchvision
+torchaudio
+./meshgpt-pytorch
+matplotlib
