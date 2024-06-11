@@ -136,53 +136,52 @@ def save_model_op(autoencoder, loss):
     )
 
 @op
-def train_autoencoder_asset(model, datasets):
+def train_autoencoder_asset(model, datasets) -> tuple[mesh_autoencoder_type, float]:
     model, loss = train_autoencoder(model, datasets)
     autoencoder = save_model_op(model, loss)
     return evaluate_model_op(autoencoder, datasets)
 
 @op
-def train_autoencoder_twice(model, datasets):
-    model, _loss = train_autoencoder_asset(model, datasets)
-    model, _loss = train_autoencoder_asset(model, datasets)
-    return model
+def train_autoencoder_twice(model, datasets) -> tuple[mesh_autoencoder_type, float]:
+    model, loss = train_autoencoder_asset(model, datasets)
+    return train_autoencoder_asset(model, datasets)
 
 @graph_asset
-def autoencoder_01():
+def autoencoder_01() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_asset(autoencoder_asset(), datasets_asset())
 
 @graph_asset
-def autoencoder_02():
+def autoencoder_02() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_01(), datasets_asset())
 
 @graph_asset
-def autoencoder_04():
+def autoencoder_04() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_02(), datasets_asset())
 
 @graph_asset
-def autoencoder_08():
+def autoencoder_08() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_04(), datasets_asset())
 
 @graph_asset
-def autoencoder_16():
+def autoencoder_16() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_08(), datasets_asset())
 
 @graph_asset
-def autoencoder_32():
+def autoencoder_32() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_16(), datasets_asset())
 
 @graph_asset
-def autoencoder_64():
+def autoencoder_64() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_32(), datasets_asset())
 
 @graph_asset
-def autoencoder_128():
+def autoencoder_128() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_64(), datasets_asset())
 
 @graph_asset
-def autoencoder_256():
+def autoencoder_256() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_128(), datasets_asset())
 
 @graph_asset
-def autoencoder_512():
+def autoencoder_512() -> tuple[mesh_autoencoder_type, float]:
     return train_autoencoder_twice(autoencoder_256(), datasets_asset())
