@@ -8,7 +8,7 @@ import random
 import tqdm
 import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
-from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset, DagsterType
+from dagster import materialize, execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset, DagsterType
 from typing import Tuple
 
 @asset
@@ -28,10 +28,10 @@ def autoencoder_asset():
 @asset
 def datasets_asset():
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
-    dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
-    dataset.data.extend(dataset2.data)  
-    dataset2 = MeshDataset.load("./objverse_250f_229.7M_3086_labels_268650_10_min_x5_aug.npz")
-    dataset.data.extend(dataset2.data) 
+    # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
+    # dataset.data.extend(dataset2.data)  
+    # dataset2 = MeshDataset.load("./objverse_250f_229.7M_3086_labels_268650_10_min_x5_aug.npz")
+    # dataset.data.extend(dataset2.data) 
     dataset.sort_dataset_keys()
     return dataset
 
@@ -169,3 +169,6 @@ def autoencoder_256() -> Tuple[MeshAutoencoder, float]:
 @graph_asset
 def autoencoder_512() -> Tuple[MeshAutoencoder, float]:
     return train_autoencoder_twice(autoencoder_256(), datasets_asset())
+
+if __name__ == '__main__':
+    materialize([autoencoder_512])
