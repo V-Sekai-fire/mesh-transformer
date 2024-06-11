@@ -131,13 +131,11 @@ def train_autoencoder_twice(model, datasets) -> Tuple[MeshAutoencoder, float]:
     return model
 
 @graph_asset
-def autoencoder_train() -> Dict[int, Tuple[MeshAutoencoder, float]]:
-    autoencoders = {}
+def autoencoder_512() -> Dict[int, Tuple[MeshAutoencoder, float]]:
     autoencoder_input = autoencoder_asset()
     
     for i in range(10):
         power = 2 ** i
         autoencoder_input = train_autoencoder_twice(autoencoder_input, datasets_asset())
-        autoencoders[power] = autoencoder_input
 
-    return autoencoders
+    return autoencoder_input
