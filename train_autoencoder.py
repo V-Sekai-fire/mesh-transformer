@@ -28,10 +28,10 @@ def autoencoder_asset():
 @asset
 def datasets_asset():
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
-    # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
-    # dataset.data.extend(dataset2.data)  
-    # dataset2 = MeshDataset.load("./objverse_250f_229.7M_3086_labels_268650_10_min_x5_aug.npz")
-    # dataset.data.extend(dataset2.data) 
+    dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
+    dataset.data.extend(dataset2.data)  
+    dataset2 = MeshDataset.load("./objverse_250f_229.7M_3086_labels_268650_10_min_x5_aug.npz")
+    dataset.data.extend(dataset2.data) 
     dataset.sort_dataset_keys()
     return dataset
 
@@ -94,8 +94,8 @@ def train_autoencoder(autoencoder, dataset) -> Tuple[MeshAutoencoder, float]:
                                             batch_size=batch_size,
                                             grad_accum_every = grad_accum_every,
                                             learning_rate = learning_rate,
-                                            checkpoint_every_epoch=5)
-    loss = autoencoder_trainer.train(1, diplay_graph= False)   
+                                            checkpoint_every_epoch=1)
+    loss = autoencoder_trainer.train(1024, diplay_graph= False)   
     return (autoencoder, loss)
 
 @op(
@@ -131,11 +131,7 @@ def train_autoencoder_twice(model, datasets) -> Tuple[MeshAutoencoder, float]:
     return model
 
 @graph_asset
-def autoencoder_512() -> Dict[int, Tuple[MeshAutoencoder, float]]:
+def autoencoder_1() -> Dict[int, Tuple[MeshAutoencoder, float]]:
     autoencoder_input = autoencoder_asset()
-    
-    for i in range(10):
-        power = 2 ** i
-        autoencoder_input = train_autoencoder_twice(autoencoder_input, datasets_asset())
-
+    autoencoder_input = train_autoencoder_twice(autoencoder_input, datasets_asset())
     return autoencoder_input
