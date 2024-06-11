@@ -8,7 +8,7 @@ import random
 import tqdm
 import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
-from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset
+from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset, DagsterType
 
 @asset
 def autoencoder_asset():
@@ -84,7 +84,26 @@ def evaluate_model_op(context, autoencoder, dataset):
         
     return autoencoder, mse_obj
 
-def train_autoencoder(autoencoder, dataset):
+
+class MeshAutoencoderDagsterType(DagsterType):
+    def __init__(self, name, description=None):
+        super(MeshAutoencoderDagsterType, self).__init__(
+            name=name,
+            description=description,
+            type_check_fn=self.type_check_method,
+        )
+
+    def type_check_method(self, context, value):
+        if not isinstance(value, MeshAutoencoder):
+            return TypeCheck(success=False)
+        return TypeCheck(success=True)
+
+mesh_autoencoder_type = MeshAutoencoderDagsterType(name='MeshAutoencoderType')
+
+mesh_autoencoder_type = MeshAutoencoderDagsterType(name='MeshAutoencoderType')
+
+@op(tags={"dagster/concurrency_key": "train"})
+def train_autoencoder(autoencoder, dataset) -> tuple[mesh_autoencoder_type, float]:
     batch_size=16
     grad_accum_every =4
     learning_rate = 1e-3
