@@ -8,7 +8,7 @@ import random
 import tqdm
 import os
 from meshgpt_pytorch import MeshAutoencoderTrainer, MeshAutoencoder, MeshDataset, mesh_render
-from dagster import execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset, DagsterType
+from dagster import OpExecutionContext, execute_job, reconstructable, DagsterInstance, In, Out, DynamicOut, DynamicOutput, graph_asset, asset, DagsterType
 from typing import Tuple
 
 @asset
@@ -36,16 +36,16 @@ def datasets_asset():
     return dataset
 
 @op(
-    ins={"dataset": In(),
-         "autoencoder": In(metadata={
-            "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
-        })},
+    ins={"autoencoder": In(),
+        "dataset": In(),},
     out={
-        "autoencoder": Out(is_required=True),
+        "autoencoder": Out(is_required=True, metadata={
+            "time": datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_"),
+            }),
         "mse_obj": Out(is_required=True),
     },
 )
-def evaluate_model_op(context, autoencoder, dataset) -> Tuple[MeshAutoencoder, str]:
+def evaluate_model_op(context: OpExecutionContext, autoencoder, dataset) -> Tuple[MeshAutoencoder, str]:
     min_mse, max_mse = float('inf'), float('-inf')
     min_coords, min_orgs, max_coords, max_orgs = None, None, None, None
     random_samples, random_samples_pred, all_random_samples = [], [], []
@@ -100,30 +100,13 @@ def train_autoencoder(autoencoder, dataset) -> Tuple[MeshAutoencoder, float]:
     loss = autoencoder_trainer.train(1, diplay_graph= False)   
     return (autoencoder, loss)
 
-@op(
-    ins={"autoencoder": In()},
-    out={
-        "autoencoder": Out()
-    },
-)
-def save_model_op(autoencoder, loss) -> MeshAutoencoder:
-    pkg = dict(model=autoencoder.state_dict())
-    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat().replace(":", "_")
-    filename = f"./MeshGPT_autoencoder_{timestamp}.pt"
-    torch.save(pkg, filename)
-    return Out(
-        autoencoder,
-        metadata={
-            "time": timestamp,
-            "loss": str(loss)
-        }
-    )
-
-@op
+@op(out={
+        "autoencoder": Out(),
+        "evaluate_model_op": Out()
+    })
 def train_autoencoder_asset(model, datasets) -> Tuple[MeshAutoencoder, float]:
     model, loss = train_autoencoder(model, datasets)
-    model = save_model_op(model, loss)
-    # model, _mse_obj = evaluate_model_op(model, datasets)
+    model, _mse_obj = evaluate_model_op(model, datasets)
     return (model, loss)
 
 @op
@@ -134,7 +117,8 @@ def train_autoencoder_twice(model, datasets) -> Tuple[MeshAutoencoder, float]:
 
 @graph_asset
 def autoencoder_01() -> Tuple[MeshAutoencoder, float]:
-    return train_autoencoder_asset(autoencoder_asset(), datasets_asset())
+    model, loss = train_autoencoder_asset(autoencoder_asset(), datasets_asset())
+    return model
 
 @graph_asset
 def autoencoder_02() -> Tuple[MeshAutoencoder, float]:
