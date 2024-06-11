@@ -1,0 +1,1 @@
+jupyter nbconvert --execute mesh_autoencoder_trainer.ipynb 
