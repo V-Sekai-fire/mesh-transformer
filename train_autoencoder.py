@@ -90,7 +90,6 @@ def train_autoencoder(autoencoder, dataset) -> Tuple[MeshAutoencoder, float]:
     batch_size=16
     grad_accum_every =4
     learning_rate = 1e-3
-    autoencoder.commit_loss_weight = 0.2
     autoencoder_trainer = MeshAutoencoderTrainer(model =autoencoder ,warmup_steps = 10, dataset = dataset, num_train_steps=100,
                                             batch_size=batch_size,
                                             grad_accum_every = grad_accum_every,
