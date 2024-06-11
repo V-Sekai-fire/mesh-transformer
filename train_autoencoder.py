@@ -28,10 +28,10 @@ def autoencoder_asset():
 @asset
 def datasets_asset():
     dataset = MeshDataset.load("./shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")  
-    # dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
-    # dataset.data.extend(dataset2.data)  
-    # dataset2 = MeshDataset.load("./objverse_250f_229.7M_3086_labels_268650_10_min_x5_aug.npz")
-    # dataset.data.extend(dataset2.data) 
+    dataset2 = MeshDataset.load("./objverse_250f_45.9M_3086_labels_53730_10_min_x1_aug.npz")
+    dataset.data.extend(dataset2.data)  
+    dataset2 = MeshDataset.load("./objverse_250f_229.7M_3086_labels_268650_10_min_x5_aug.npz")
+    dataset.data.extend(dataset2.data) 
     dataset.sort_dataset_keys()
     return dataset
 
