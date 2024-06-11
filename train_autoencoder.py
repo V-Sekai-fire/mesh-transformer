@@ -167,6 +167,3 @@ def autoencoder_256() -> Tuple[MeshAutoencoder, float]:
 @graph_asset
 def autoencoder_512() -> Tuple[MeshAutoencoder, float]:
     return train_autoencoder_twice(autoencoder_256(), datasets_asset())
-
-if __name__ == '__main__':
-    materialize([autoencoder_512])
