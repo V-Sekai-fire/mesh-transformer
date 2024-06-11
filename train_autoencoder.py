@@ -45,7 +45,7 @@ def datasets_asset():
         "mse_obj": Out(is_required=True),
     },
 )
-def evaluate_model_op(context, autoencoder, dataset):
+def evaluate_model_op(context, autoencoder, dataset) -> Tuple[MeshAutoencoder, str]:
     min_mse, max_mse = float('inf'), float('-inf')
     min_coords, min_orgs, max_coords, max_orgs = None, None, None, None
     random_samples, random_samples_pred, all_random_samples = [], [], []
@@ -53,7 +53,7 @@ def evaluate_model_op(context, autoencoder, dataset):
 
     random.shuffle(dataset.data)
     autoencoder = autoencoder.to("cuda")
-    for item in tqdm.tqdm(dataset.data[:sample_size]):  # Use tqdm.tqdm here
+    for item in tqdm.tqdm(dataset.data[:sample_size]):
         item['faces'] = item['faces'].to("cuda")
         item['vertices'] = item['vertices'].to("cuda")
         item['face_edges'] = item['face_edges'].to("cuda")
@@ -122,7 +122,7 @@ def save_model_op(autoencoder, loss) -> MeshAutoencoder:
 @op
 def train_autoencoder_asset(model, datasets) -> Tuple[MeshAutoencoder, float]:
     model, loss = train_autoencoder(model, datasets)
-    # model = save_model_op(model, loss)
+    model = save_model_op(model, loss)
     # model, _mse_obj = evaluate_model_op(model, datasets)
     return (model, loss)
 
