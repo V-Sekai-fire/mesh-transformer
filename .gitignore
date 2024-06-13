@@ -5,3 +5,5 @@ MeshGPT-transformer_trained.pt
 *.npz
 *.pt
 __pycache__
+
+mesh-transformer-datasets
