@@ -49,6 +49,7 @@ Status: Proposed
 ## Decision Makers
 
 - V-Sekai development team
+- iFire
 
 ## Tags
 
