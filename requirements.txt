@@ -1,0 +1,6 @@
+torch
+torchvision
+torchaudio
+git+https://github.com/MarcusLoppe/meshgpt-pytorch.git
+matplotlib
+accelerate

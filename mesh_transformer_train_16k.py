@@ -45,16 +45,16 @@ autoencoder = MeshAutoencoder(
     attn_decoder_depth  = 4,
     attn_encoder_depth = 2)
 
-pkg = torch.load("./mesh-transformer-datasets/16k_autoencoder_229M_0.338.pt")
+pkg = torch.load("../datasets/16k_autoencoder_229M_0.338.pt")
 autoencoder.load_state_dict(pkg['model'], strict = False)
 
-dataset = MeshDataset.load("./mesh-transformer-datasets/objverse_250f_490.7M_all_17561_labels_568425_5_min_x5_aug.npz")
+dataset = MeshDataset.load("../datasets/objverse_250f_490.7M_all_17561_labels_568425_5_min_x5_aug.npz")
 
-dataset2 = MeshDataset.load("./mesh-transformer-datasets/objverse_250f_98.1M_all_17561_labels_113685_5_min_x1_aug.npz")
+dataset2 = MeshDataset.load("../datasets/objverse_250f_98.1M_all_17561_labels_113685_5_min_x1_aug.npz")
 dataset.data.extend(dataset2.data)
-dataset2 = MeshDataset.load("./mesh-transformer-datasets/shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")
+dataset2 = MeshDataset.load("../datasets/shapenet_250f_2.2M_84_labels_2156_10_min_x1_aug.npz")
 dataset.data.extend(dataset2.data)
-dataset2 = MeshDataset.load("./mesh-transformer-datasets/shapenet_250f_21.9M_84_labels_21560_10_min_x10_aug.npz")
+dataset2 = MeshDataset.load("../datasets/shapenet_250f_21.9M_84_labels_21560_10_min_x10_aug.npz")
 dataset.data.extend(dataset2.data)
 
 dataset.sort_dataset_keys()
@@ -133,7 +133,7 @@ from accelerate import Accelerator
 
 accelerator = Accelerator()
 
-batch_size = 16
+batch_size = 64
 grad_accum_every = 64 // batch_size
 rate = 1e-3
 
