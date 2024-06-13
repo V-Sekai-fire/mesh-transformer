@@ -15,7 +15,14 @@ git clone git@spark.chibifire.com:ernest.lee/mesh-transformer-datasets.git
 
 ```
 pip install jupytext
-#jupytext --to ipynb mesh_trainer.py
-jupytext --to py mesh_trainer.py
-rm -rf mesh_trainer.ipynb
+jupytext --to py *.ipynb
+rm -rf *.ipynb
+```
+
+## ipython to Python 
+
+```
+pip install jupytext
+jupytext --to ipynb mesh_trainer.py
+rm -rf *.py
 ```
