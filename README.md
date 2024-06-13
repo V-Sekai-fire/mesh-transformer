@@ -1,41 +1,65 @@
-# Procedure
 
-VSCode is a bit unreliable. I want to be able to shut down my vscode.
+# Mesh Transformers
 
-So text-to-mesh is now on github and on tmux.
+SOTA Mesh generation using Attention, in Pytorch
 
-Also converted ipynb to py.
+## Citations
 
-# Python to ipython
-
+```bibtex
+@inproceedings{Siddiqui2023MeshGPTGT,
+    title   = {MeshGPT: Generating Triangle Meshes with Decoder-Only Transformers},
+    author  = {Yawar Siddiqui and Antonio Alliegro and Alexey Artemov and Tatiana Tommasi and Daniele Sirigatti and Vladislav Rosov and Angela Dai and Matthias Nie{\ss}ner},
+    year    = {2023},
+    url     = {https://api.semanticscholar.org/CorpusID:265457242}
+}
 ```
-pip install jupytext
-#jupytext --to ipynb mesh_trainer.py
-jupytext --to py mesh_trainer.py
-rm -rf mesh_trainer.ipynb
+
+```bibtex
+@inproceedings{dao2022flashattention,
+    title   = {Flash{A}ttention: Fast and Memory-Efficient Exact Attention with {IO}-Awareness},
+    author  = {Dao, Tri and Fu, Daniel Y. and Ermon, Stefano and Rudra, Atri and R{\'e}, Christopher},
+    booktitle = {Advances in Neural Information Processing Systems},
+    year    = {2022}
+}
 ```
 
-# Plan
+```bibtex
+@inproceedings{Leviathan2022FastIF,
+    title   = {Fast Inference from Transformers via Speculative Decoding},
+    author  = {Yaniv Leviathan and Matan Kalman and Y. Matias},
+    booktitle = {International Conference on Machine Learning},
+    year    = {2022},
+    url     = {https://api.semanticscholar.org/CorpusID:254096365}
+}
+```
 
-So I'm thinking of letting the autoencoder train on the 1.5B tokens and then after maybe 1 epoch we switch to 200M 
+```bibtex
+@misc{yu2023language,
+    title   = {Language Model Beats Diffusion -- Tokenizer is Key to Visual Generation}, 
+    author  = {Lijun Yu and José Lezama and Nitesh B. Gundavarapu and Luca Versari and Kihyuk Sohn and David Minnen and Yong Cheng and Agrim Gupta and Xiuye Gu and Alexander G. Hauptmann and Boqing Gong and Ming-Hsuan Yang and Irfan Essa and David A. Ross and Lu Jiang},
+    year    = {2023},
+    eprint  = {2310.05737},
+    archivePrefix = {arXiv},
+    primaryClass = {cs.CV}
+}
+```
 
-Then we got the option to continue train the autoencoder on 1.5B tokens but that would require two sessions running.
+```bibtex
+@article{Lee2022AutoregressiveIG,
+    title   = {Autoregressive Image Generation using Residual Quantization},
+    author  = {Doyup Lee and Chiheon Kim and Saehoon Kim and Minsu Cho and Wook-Shin Han},
+    journal = {2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    year    = {2022},
+    pages   = {11513-11522},
+    url     = {https://api.semanticscholar.org/CorpusID:247244535}
+}
+```
 
-* 6 tokens per triangle for safety
-* 200M  tokens 50k models 7k labels.
-* 1.5 billion tokens  582819 models with 54k labels
-* fine-tune it on maybe 10-20k models
-
-Okay, the most reasonable is not to jump to the sky and waste GPU $$, so the 200M seems like a good start.
-
-But I was thinking of testing training the autoencoder on 1.5B and if it takes like 48hrs using 4090, then we might just train on the 200M tokens only.
-
-Okay, the plan now is to train again, but setting "text_condition_cond_drop_prob" to 25%.
-
-This value will mask the text, so instead of "shovel with a wooden handle" it can become "wooden handle" or "shovel" since it will have a 25% change to drop any of the words in the text.
-
-After it has reached like 0.00X average loss per epoch, we can focus on the next big thing.
-
-The first step in creating a new model is the autoencoder, so we'll try with the 1.5B tokens and see how long that would take.
-
-The reason for this is that the more diverse data it gets, the better it's able generalize.
+```bibtex
+@inproceedings{Katsch2023GateLoopFD,
+    title   = {GateLoop: Fully Data-Controlled Linear Recurrence for Sequence Modeling},
+    author  = {Tobias Katsch},
+    year    = {2023},
+    url     = {https://api.semanticscholar.org/CorpusID:265018962}
+}
+```
