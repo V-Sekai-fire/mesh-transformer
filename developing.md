@@ -4,5 +4,7 @@ jupyter nbconvert --execute mesh_train.ipynb
 git config --global user.name "runpod"
 git config --global user.email "runpod@chibifire.com"
 ssh-keygen -t ed25519 -C "runpod@chibifire.com"
+eval `ssh-agent`
+ssh-add ~/.ssh/id_ed25519
 git clone git@spark.chibifire.com:ernest.lee/mesh-transformer-datasets.git
 ```
