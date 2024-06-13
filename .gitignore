@@ -7,3 +7,4 @@ MeshGPT-transformer_trained.pt
 __pycache__
 
 mesh-transformer-datasets
+checkpoints
